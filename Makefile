@@ -1,31 +1,28 @@
-# Include config if exists
--include  config.make
-
-# Put these into config.make to override with your setup
-RESUME ?= resumes/example.yaml
-RSYNC_LOCATION ?= example.com:/var/www/resume/
+# RESUME ?= resumes/hanula.yaml
+RESUME ?= resumes/jmbeach.yaml
+RESUMES_DIR ?= resumes
+list: $(RESUMES_DIR)/*
+			@echo $^
 
 PYTHON ?= $(shell which python3)
-RSYNC ?= $(shell which rsync)
-RSYNC_ARGS ?= aAXv
 BUILD_DIR ?= build
+THEME ?= compact
 BUILD_ARGS ?= --output_dir $(BUILD_DIR)
 BUILD ?= $(PYTHON) build.py $(BUILD_ARGS)
 
-
-.PHONY: clean html pdf publish
+.PHONY: clean html pdf
 
 all: clean html pdf
 
-html:
-	$(BUILD) --format html $(RESUME)
-	@echo "Done"
-
-pdf:
-	$(BUILD) --format pdf $(RESUME)
+dir_all: $(RESUMES_DIR)/*
+	@for file in $^ ; do $(BUILD) --format both --theme $(THEME) $${file} ; done
 
 clean:
-	@rm -rf ./build
+#	@rm -rf ./build
+	@echo $(RESUME)
 
-publish:
-	$(RSYNC) -$(RSYNC_ARGS) $(BUILD_DIR) $(RSYNC_LOCATION)
+html:
+	$(BUILD) --format html --theme $(THEME) $(RESUME)
+
+pdf:
+	$(BUILD) --format pdf --theme $(THEME) $(RESUME)
