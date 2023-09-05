@@ -1,0 +1,43 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
+{
+	"name": "Resume Generator",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	// "image": "mcr.microsoft.com/devcontainers/python:0-3.11",
+	"build": {
+		// Path is relataive to the devcontainer.json file.
+		"dockerfile": "../Dockerfile"
+	},
+	// Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			"settings": {
+				"editor.formatOnSave": true,
+				"python.languageServer": "Pylance",
+				"files.exclude": {
+					"**/.git": true, // this is a default value
+					"**/.pytest_cache": true,
+					"**/__pycache__": true
+				}
+			},
+			"extensions": [
+				"ms-python.python",
+				"eamodio.gitlens",
+				"ms-toolsai.jupyter",
+				"ms-python.vscode-pylance",
+				"ms-python.pylint",
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	},
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {
+	// 	"ghcr.io/devcontainers/features/conda:1": {}
+	// },
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "conda init bash && source ~/.bashrc && conda activate template_env"
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	"remoteUser": "root"
+	// "remoteUser": "vscode"
+}

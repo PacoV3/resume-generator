@@ -14,17 +14,11 @@ import os
 from typing import TypedDict
 
 import shutil
+
 from weasyprint import HTML
 import yaml
-import docopt
 import jinja2
 import helpers
-
-
-# Template defaults
-defaults = {
-    "labels": None,
-}
 
 
 def read_yaml(filename: str) -> TypedDict:
@@ -32,20 +26,21 @@ def read_yaml(filename: str) -> TypedDict:
     Read Yaml file given by ``filename`` and return dictionary data.
     """
     with open(filename, "rt", encoding="utf-8") as file:
-        return yaml.load(file, Loader=yaml.FullLoader)
+        yaml_data = yaml.load(file, Loader=yaml.FullLoader)
+    return yaml_data
 
 
-def render_template(tpl, variables):
+def render_template(template_file: str, yml_data: TypedDict) -> str:
     """
-    Render template file with ``variables`` arguments.
+    Render template file with ``yml_data``.
     """
-    with open(tpl, "rt", encoding="utf-8") as file:
-        tpl = jinja2.Template(file.read())
+    with open(template_file, "rt", encoding="utf-8") as file:
+        jinja2_template = jinja2.Template(file.read())
 
-    return tpl.render(**variables)
+    return jinja2_template.render(**yml_data)
 
 
-def copy_static_data(theme_dir, output_dir):
+def copy_static_data(theme_dir, output_dir) -> None:
     """
     Copy contents of theme directory skipping all jinja template files.
     """
@@ -56,66 +51,53 @@ def copy_static_data(theme_dir, output_dir):
     )
 
 
-def clean(output_dir):
+def clean(output_dir: str) -> None:
     """
     Remove the output directory.
     """
     shutil.rmtree(output_dir, ignore_errors=True)
 
 
-def build(data, config: TypedDict, output_dir):
+# theme -> simple or compact
+def make_html(yaml_data: TypedDict, theme: str, output_dir: str):
     """
     Build the final directory, rendering all templates and copying source files
     """
-    theme_name = config.get("theme", "simple")
-    variables = defaults.copy()
-    variables.update(data)
-    variables["config"] = config
-    variables["h"] = helpers  # make helpers module accessible via 'h' shortcut.
-
-    theme_location = os.path.join("themes", theme_name)
+    yaml_data["h"] = helpers
+    yaml_data["labels"] = None
+    theme_location = os.path.join("themes", theme)
+    jinja2_template = os.path.join(theme_location, "index.jinja2")
+    html_template = os.path.join(output_dir, "index.html")
 
     clean(output_dir)
     copy_static_data(theme_location, output_dir)
 
-    for filename in os.listdir(theme_location):
-        if filename != "index.jinja2":
-            continue
-
-        html = render_template(os.path.join(theme_location, filename), variables)
-
-        rendered_file = filename.replace(".jinja2", ".html")
-        with open(os.path.join(output_dir, rendered_file), "wt", encoding="utf-8") as file:
-            file.write(html)
+    html = render_template(jinja2_template, yaml_data)
+    with open(html_template, "wt", encoding="utf-8") as file:
+        file.write(html)
 
 
-def make_html(config: TypedDict, data):
-    """
-    Generate static html build of the resume given by input `data`.
-    """
-    output_dir = config.get("output_dir", "build")
-    build(data, config, output_dir)
-
-
-def make_pdf(config: TypedDict):
+def make_pdf(file_name: str, theme: str, output_dir: str, pdf_dir: str = "./pdf"):
     """
     Generate PDF file out of generated 'index.html' page.
     """
-    output_dir = config.get("output_dir", "build")
-    pdf_output_dir = "./pdf"
-    output_file = os.path.join(pdf_output_dir, config.get("pdf_file", "resume.pdf"))
+    output_file = os.path.join(pdf_dir, file_name.replace(".yaml", ".pdf"))
     input_file = os.path.join(output_dir, "index.html")
-    theme_location = os.path.join("themes", config["theme"])
+    theme_location = os.path.join("themes", theme)
     html = HTML(input_file, base_url=theme_location)
     html.write_pdf(output_file)
 
 
-def make_both(config: TypedDict, data):
+def make_resume_from_yaml(file_name: str, theme: str, output_dir: str):
     """
     Both HTML and PDF for a single file.
     """
-    make_html(config, data)
-    make_pdf(config)
+    resume_data = read_yaml(file_name)
+    make_html(resume_data, theme, output_dir)
+    # make_pdf(
+    #     file_name,
+    #     theme,
+    # )
 
 
 def main():
@@ -123,26 +105,16 @@ def main():
     Entry function for the script to handle command arguments
     and run appropriate build like 'html' and 'pdf'.
     """
-    args = docopt.docopt(__doc__)
-    output_format = args["--format"]
-
     # read resume data and config with some defaults
-    resume_data = read_yaml(args["<resume_file>"])
-    config = resume_data.get("config", {})
-    config.setdefault("output_dir", args["--output_dir"])
-    config["theme"] = args["--theme"] or config.get("theme")
-    config.setdefault("theme", "simple")
+    output_dir = "./build"
+    theme = "simple"
+    yaml_file_name = "./resumes/hanula.yaml"
 
     # build based on the given format
     # cmds = {'html': make_html, 'pdf': make_pdf}
     # return cmds[output_format](config, resume_data)
 
-    if output_format == "both":
-        make_both(config, resume_data)
-    elif output_format == "html":
-        make_html(config, resume_data)
-    elif output_format == "pdf":
-        make_pdf(config)
+    make_resume_from_yaml(yaml_file_name, theme, output_dir)
 
 
 if __name__ == "__main__":
