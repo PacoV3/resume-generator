@@ -9,11 +9,14 @@ section.projects .item {
 }
 
 @media print {
-  .networks {
+  /* .networks {
     display:none;
-  }
+  } */
   .networks-container {
-    display: none;
+    /* display: none; */
+    font-size: 2px !important;
+    align-items: middle;
+    justify-content: center;
   }
   *,
   *:before,

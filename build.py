@@ -98,10 +98,12 @@ def main():
     pdf_dir = "pdf"
     output_dir = "build"
     theme = "compact"
+    # theme = "simple"
     # file_name = "jmbeach"
     # file_name = "hanula"
 
     files = ["jmbeach", "hanula"]
+    # files = ["temp"]
 
     for file in files:
         make_resume_from_yaml(file, theme, yaml_dir, pdf_dir, output_dir)

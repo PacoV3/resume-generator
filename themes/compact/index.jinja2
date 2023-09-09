@@ -105,25 +105,23 @@
                       {{ profile.website }}
                     </a>
                 </dd> -->
-
               </dl>
-            </div>
-
-            <div class="col-md-6 col-sm-6 col-xs-offset-6 col-xs-6 networks-container">
-              <ul class="networks list-inline text-right">
-                {% for network in profile.networks %}
-                <li>
-                  <a href="{{ network.url }}">
-                            {{ network.username }} @ {{ network.provider }}
-                        </a>
-                </li>
-                {% endfor %}
-              </ul>
             </div>
           </div>
 
 
         </header>
+        <div class="networks-container">
+          <ul class="networks list-inline text-right">
+            {% for network in profile.networks %}
+            <li>
+              <a href="{{ network.url }}">
+                        {{ network.username }}@{{ network.provider }}
+                    </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
 
         {% if profile.objective %}
         <section class="row">
